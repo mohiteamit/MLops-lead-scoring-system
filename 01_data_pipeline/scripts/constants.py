@@ -1,7 +1,7 @@
 # You can create more variables according to your project. The following are the basic variables that have been provided to you
 UNIT_TEST_DB_FILE_NAME = '/home/upgrad-codepro/01_data_pipeline/scripts/unit_test_cases.db'
-DB_PATH = '/home/upgrad-codepro/01_data_pipeline/scripts'
-DB_FILE_NAME = 'utils_output.db'
+DB_PATH = ''
+DB_FILE_NAME = 'lead_scoring_data_cleaning.db'
 
 DATA_DIRECTORY = '/home/upgrad-codepro/01_data_pipeline/scripts/data'
 INTERACTION_MAPPING = "/home/airflow/dags/Lead_scoring_data_pipeline/mapping/interaction_mapping.csv"
