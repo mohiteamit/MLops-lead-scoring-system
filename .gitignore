@@ -1,5 +1,6 @@
 #
 02_training_pipeline/notebooks/mlruns/*
+02_training_pipeline/notebooks/mlruns
 airflow.db
 logs/*
 LightGBM/*
