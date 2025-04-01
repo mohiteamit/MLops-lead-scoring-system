@@ -1,3 +1,4 @@
+
 In this segment you will create a pipeline to automate data cleaning using Airflow. For creating the pipeline follow the below mentioned instructions:
 
 1. Go to the Assignment/02_training_pipeline/scripts folder.  
