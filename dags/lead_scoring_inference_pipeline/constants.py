@@ -4,7 +4,7 @@ DB_FULL_PATH = '/home/airflow/dags/lead_scoring_data_pipeline/lead_scoring_data_
 # DB_PATH = "/home/airflow/dags/lead_scoring_data_pipeline/"
 DATA_DIRECTORY = '/home/airflow/dags/lead_scoring_data_pipeline/data/'
 CSV_FILE_NAME = 'leadscoring_inference.csv'
-PREDICTION_DIST_TXT = '/home/airflow/dags/lead_scoring_inference_pipeline/lead_scoring_inference_pipeline.py\prediction_distribution.tx'
+PREDICTION_DIST_TXT = '/home/airflow/dags/lead_scoring_inference_pipeline/prediction_distribution.txt'
 
 # MLflow
 MLFLOW_DB = '/home/mlflow/lead_scoring.db'

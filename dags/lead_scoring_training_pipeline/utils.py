@@ -6,6 +6,7 @@ import numpy as np
 import sqlite3
 import mlflow
 import mlflow.sklearn
+from mlflow.tracking import MlflowClient
 from sklearn.model_selection import cross_val_score, train_test_split
 from sklearn.metrics import roc_auc_score, accuracy_score
 import lightgbm as lgb
@@ -172,6 +173,38 @@ def get_trained_model():
         mean_auc = np.mean(scores)
         mlflow.log_metric("AUC", mean_auc)
         print(f"New model logged with cross-validated AUC: {mean_auc:.4f}")
+
+        # Log parameters
+        mlflow.log_params(MODEL_CONFIG)
+
+        # Register the model
+        mlflow.sklearn.log_model(
+            sk_model=model,
+            artifact_path="models",
+            registered_model_name="LightGBM"  # Registers or creates a new version
+        )
+
+        # Get the client and current run ID
+        client = MlflowClient()
+        run_id = mlflow.active_run().info.run_id
+
+        # Get all versions for this model, sort by creation time, and get the latest
+        latest_versions = client.search_model_versions(f"name='LightGBM'")
+        latest_version = max(
+            latest_versions,
+            key=lambda v: int(v.version)
+        )
+
+        # Promote to Production
+        client.transition_model_version_stage(
+            name="LightGBM",
+            version=latest_version.version,
+            stage="Production",
+            archive_existing_versions=True
+        )
+
+        print(f"Promoted version {latest_version.version} of 'LightGBM' to Production.")
+
 
     # # Train/test split
     # X_train, X_test, y_train, y_test = train_test_split(
