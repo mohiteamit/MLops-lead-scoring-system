@@ -28,6 +28,15 @@ Lead_scoring_inference_dag = DAG(
 )
 
 ###############################################################################
+# Create a task for start_mlflow_server_if_not_running() function with task_id 'start_mlflow'
+# ##############################################################################
+start_mlflow = PythonOperator(
+        task_id = 'start_mlflow',
+        python_callable = start_mlflow_server_if_not_running,
+        dag = Lead_scoring_inference_dag)
+
+
+###############################################################################
 # Create a task for encode_data_task() function with task_id 'encoding_categorical_variables'
 # ##############################################################################
 encoding_categorical_variables = PythonOperator(
@@ -66,4 +75,4 @@ checking_input_features = PythonOperator(
 ###############################################################################
 # Define relation between tasks
 # ##############################################################################
-encoding_categorical_variables >> checking_input_features >> generating_models_prediction >> checking_model_prediction_ratio
+start_mlflow >> encoding_categorical_variables >> checking_input_features >> generating_models_prediction >> checking_model_prediction_ratio
