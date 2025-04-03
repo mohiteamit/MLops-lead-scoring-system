@@ -8,8 +8,8 @@ from airflow.operators.python import PythonOperator
 
 from datetime import datetime, timedelta
 
-from Lead_scoring_data_pipeline.utils import build_dbs, load_data_into_db, map_city_tier, map_categorical_vars, interactions_mapping
-from Lead_scoring_data_pipeline.data_validation_checks import raw_data_schema_check, model_input_schema_check
+from lead_scoring_data_pipeline.utils import build_dbs, load_data_into_db, map_city_tier, map_categorical_vars, interactions_mapping
+from lead_scoring_data_pipeline.data_validation_checks import raw_data_schema_check, model_input_schema_check
 
 
 ###############################################################################

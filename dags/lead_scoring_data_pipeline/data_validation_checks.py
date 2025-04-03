@@ -3,9 +3,9 @@ Import necessary modules
 ############################################################################## 
 """
 import os
-from Lead_scoring_data_pipeline.constants import *
-from Lead_scoring_data_pipeline.utils import *
-from Lead_scoring_data_pipeline.schema import *
+from lead_scoring_data_pipeline.constants import DATA_DIRECTORY, CSV_FILE_NAME, DB_PATH, DB_FILE_NAME
+from lead_scoring_data_pipeline.utils import *
+from lead_scoring_data_pipeline.schema import *
 
 import pandas as pd
 import sqlite3
@@ -36,7 +36,7 @@ def raw_data_schema_check():
     SAMPLE USAGE
         raw_data_schema_check
     '''
-    file_path = os.path.join(DATA_DIRECTORY, 'leadscoring.csv')
+    file_path = os.path.join(DATA_DIRECTORY, CSV_FILE_NAME)
     df_lead_data = pd.read_csv(file_path, index_col=[0])
     
     check = set(df_lead_data.columns) == set(raw_data_schema)

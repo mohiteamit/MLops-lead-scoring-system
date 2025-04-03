@@ -1,10 +1,10 @@
 # Database configuration
 DB_FILE_NAME = 'lead_scoring_data_cleaning.db'
-DB_PATH = "/home/airflow/dags/Lead_scoring_data_pipeline/"
-DATA_DIRECTORY = '/home/airflow/dags/Lead_scoring_data_pipeline/data/'
+DB_PATH = "/home/airflow/dags/lead_scoring_data_pipeline/"
+DATA_DIRECTORY = '/home/airflow/dags/lead_scoring_data_pipeline/data/'
 CSV_FILE_NAME = 'leadscoring.csv'
 
-INTERACTION_MAPPING = "/home/airflow/dags/Lead_scoring_data_pipeline/mapping/interaction_mapping.csv"
+INTERACTION_MAPPING = "/home/airflow/dags/lead_scoring_data_pipeline/mappings/interaction_mapping.csv"
 
 INDEX_COLUMNS_TRAINING = [
     'created_date', 

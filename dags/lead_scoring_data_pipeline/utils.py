@@ -3,9 +3,9 @@ import os
 import sqlite3
 from sqlite3 import Error
 
-from Lead_scoring_data_pipeline.constants import CSV_FILE_NAME, DB_FILE_NAME, DB_PATH, DATA_DIRECTORY, INTERACTION_MAPPING, INDEX_COLUMNS_TRAINING, INDEX_COLUMNS_INFERENCE, NOT_FEATURES
-from Lead_scoring_data_pipeline.mappings.significant_categorical_level import PLATFORM_LEVELS, MEDIUM_LEVELS, SOURCE_LEVELS
-from Lead_scoring_data_pipeline.mappings.city_tier_mapping import city_tier_mapping
+from lead_scoring_data_pipeline.constants import CSV_FILE_NAME, DB_FILE_NAME, DB_PATH, DATA_DIRECTORY, INTERACTION_MAPPING, INDEX_COLUMNS_TRAINING, INDEX_COLUMNS_INFERENCE, NOT_FEATURES
+from lead_scoring_data_pipeline.mappings.significant_categorical_level import PLATFORM_LEVELS, MEDIUM_LEVELS, SOURCE_LEVELS
+from lead_scoring_data_pipeline.mappings.city_tier_mapping import city_tier_mapping
 
 def build_dbs():
     '''
@@ -83,6 +83,11 @@ def map_city_tier():
     finally:
         connection.close()
 
+import os
+import sqlite3
+from sqlite3 import Error
+import pandas as pd
+
 def map_categorical_vars():
     '''
     Maps insignificant categorical variables to "others".
@@ -94,27 +99,32 @@ def map_categorical_vars():
         connection = sqlite3.connect(db_full_path)
     except Error as e:
         raise RuntimeError("Failed to connect to DB in map_categorical_vars: " + str(e))
-    
+
     try:
         df_lead_scoring = pd.read_sql('select * from city_tier_mapped', connection)
 
-        new_df = df_lead_scoring[~df_lead_scoring['first_platform_c'].isin(PLATFORM_LEVELS)]
-        new_df['first_platform_c'] = "others"
+        # Map insignificant platform values
+        new_df = df_lead_scoring[~df_lead_scoring['first_platform_c'].isin(PLATFORM_LEVELS)].copy()
+        new_df.loc[:, 'first_platform_c'] = "others"
         old_df = df_lead_scoring[df_lead_scoring['first_platform_c'].isin(PLATFORM_LEVELS)]
         df = pd.concat([new_df, old_df])
 
-        new_df = df[~df['first_utm_medium_c'].isin(MEDIUM_LEVELS)]
-        new_df['first_utm_medium_c'] = "others"
+        # Map insignificant medium values
+        new_df = df[~df['first_utm_medium_c'].isin(MEDIUM_LEVELS)].copy()
+        new_df.loc[:, 'first_utm_medium_c'] = "others"
         old_df = df[df['first_utm_medium_c'].isin(MEDIUM_LEVELS)]
         df = pd.concat([new_df, old_df])
 
-        new_df = df[~df['first_utm_source_c'].isin(SOURCE_LEVELS)]
-        new_df['first_utm_source_c'] = "others"
+        # Map insignificant source values
+        new_df = df[~df['first_utm_source_c'].isin(SOURCE_LEVELS)].copy()
+        new_df.loc[:, 'first_utm_source_c'] = "others"
         old_df = df[df['first_utm_source_c'].isin(SOURCE_LEVELS)]
         df = pd.concat([new_df, old_df])
 
+        # Drop duplicates and save to DB
         df = df.drop_duplicates()
         df.to_sql(name='categorical_variables_mapped', con=connection, if_exists='replace', index=False)
+
     except Exception as e:
         raise RuntimeError("Failed to map categorical variables: " + str(e))
     finally:
