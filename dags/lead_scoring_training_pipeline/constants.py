@@ -2,7 +2,7 @@
 DB_FULL_PATH = '/home/airflow/dags/lead_scoring_data_pipeline/lead_scoring_data_cleaning.db'
 
 # MLflow
-MLFLOW_DB = 'Lead_scoring_mlflow_production.db'
+MLFLOW_DB = '/home/mlflow/lead_scoring.db'
 MLFLOW_TRACKING_URI = "http://0.0.0.0:6006"
 MLFLOW_PORT = 6006
 MLFLOW_BACKEND_STORE_URI = 'sqlite:////home/mlflow/lead_scoring.db'
@@ -11,30 +11,31 @@ EXPERIMENT = "Lead_Scoring_Training_Pipeline"
 
 # model config imported from pycaret experimentation
 MODEL_CONFIG = {
-    'bagging_fraction': 0.7270347957141144,
-    'bagging_freq': 6,
     'boosting_type': 'gbdt',
-    'class_weight': None,
-    'colsample_bytree': 1.0,
-    'feature_fraction': 0.6941874692691037,
-    'importance_type': 'split',
     'learning_rate': 0.01919206058621799,
+    'n_estimators': 144,
     'max_depth': -1,
+    'num_leaves': 176,
     'min_child_samples': 64,
     'min_child_weight': 0.001,
     'min_split_gain': 0.10013366427103398,
-    'n_estimators': 144,
-    'n_jobs': 4,
-    'num_leaves': 176,
-    'objective': None,
-    'random_state': 42,
     'reg_alpha': 3.7354322978081316e-10,
     'reg_lambda': 7.804174944814686e-09,
-    'silent': 'warn',
-    'subsample': 1.0,
-    'subsample_for_bin': 200000,
-    'subsample_freq': 0,
+    'feature_fraction': 0.6941874692691037,  # Preferred over colsample_bytree
+    'bagging_fraction': 0.7270347957141144,  # Preferred over subsample
+    'bagging_freq': 6,                       # Requires matching subsample_freq
+    'importance_type': 'split',
+    'random_state': 42,
+    'n_jobs': 4,
+    'silent': 'warn',                        # Deprecated; use verbose=-1 if needed
+    'class_weight': None,
+    'objective': None,    
+    # Redundant/conflicting parameters
+    # 'colsample_bytree': 1.0,               # Ignored when feature_fraction is set
+    # 'subsample': 1.0,                      # Ignored when bagging_fraction is set
+    # 'subsample_freq': 0,                  # Conflicts with bagging_freq > 0
 }
+
 
 # list of the features that need to be there in the final encoded dataframe
 ONE_HOT_ENCODED_FEATURES = [

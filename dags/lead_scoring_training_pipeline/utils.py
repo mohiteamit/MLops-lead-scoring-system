@@ -2,10 +2,11 @@ import socket
 import subprocess
 import time
 import pandas as pd
+import numpy as np
 import sqlite3
 import mlflow
 import mlflow.sklearn
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import cross_val_score, train_test_split
 from sklearn.metrics import roc_auc_score, accuracy_score
 import lightgbm as lgb
 from lead_scoring_training_pipeline.constants import DB_FULL_PATH, ONE_HOT_ENCODED_FEATURES, FEATURES_TO_ENCODE, MLFLOW_DB, MODEL_CONFIG, MLFLOW_TRACKING_URI, EXPERIMENT
@@ -123,7 +124,7 @@ def get_trained_model():
     """
 
     # Step 1: Get best run info from MLflow DB
-    conn = sqlite3.connect(MLFLOW_DB)
+    conn = sqlite3.connect(f"file:{MLFLOW_DB}?mode=ro", uri=True)
     best_run_metrics_query = """
         SELECT run_uuid, value
         FROM metrics
@@ -161,28 +162,40 @@ def get_trained_model():
     mlflow.set_experiment(EXPERIMENT)
 
     conn = sqlite3.connect(DB_FULL_PATH)
-    features_data_df = pd.read_sql('SELECT * FROM FEATURES', conn)
-    target_data_df = pd.read_sql('SELECT * FROM TARGET', conn)
+    X = pd.read_sql('SELECT * FROM FEATURES', conn)
+    y = pd.read_sql('SELECT * FROM TARGET', conn)
     conn.close()
-
-    X_train, X_test, y_train, y_test = train_test_split(
-        features_data_df, target_data_df, test_size=0.3, random_state=0
-    )
 
     with mlflow.start_run(run_name='Training_LIGHTGBM') as mlrun:
         model = lgb.LGBMClassifier(**MODEL_CONFIG)
-        model.fit(X_train, y_train)
+        scores = cross_val_score(model, X, y.values.ravel(), scoring='roc_auc', cv=5)
+        mean_auc = np.mean(scores)
+        mlflow.log_metric("AUC", mean_auc)
+        print(f"New model logged with cross-validated AUC: {mean_auc:.4f}")
 
-        mlflow.sklearn.log_model(
-            sk_model=model,
-            artifact_path="models",
-            registered_model_name='LightGBM'
-        )
+    # # Train/test split
+    # X_train, X_test, y_train, y_test = train_test_split(
+    #     X, y, test_size=0.9, random_state=0
+    # )
 
-        mlflow.log_params(MODEL_CONFIG)
+    # with mlflow.start_run(run_name='run_LightGB') as mlrun:
+    #     model = lgb.LGBMClassifier()
+    #     model.set_params(**MODEL_CONFIG)
+    #     model.fit(X_train, y_train)
 
-        y_pred = model.predict(X_test)
-        auc = roc_auc_score(y_test, y_pred)
-        mlflow.log_metric('AUC', auc)
+    #     # Log model
+    #     mlflow.sklearn.log_model(
+    #         sk_model=model,
+    #         artifact_path="models",
+    #         registered_model_name='LightGBM'
+    #     )
 
-        print(f"New model trained and logged with AUC: {auc:.4f}")
+    #     # Log parameters
+    #     mlflow.log_params(MODEL_CONFIG)
+
+    #     # Predict and log AUC
+    #     y_pred = model.predict(X_test)
+    #     auc = roc_auc_score(y_test, y_pred)
+    #     mlflow.log_metric('AUC', auc)
+
+    #     print(f"✅ New model trained and logged with AUC: {auc:.4f}")
