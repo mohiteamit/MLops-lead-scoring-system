@@ -167,12 +167,32 @@ def get_trained_model():
     y = pd.read_sql('SELECT * FROM TARGET', conn)
     conn.close()
 
+    # Train/test split
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.9, random_state=0
+    )
+
     with mlflow.start_run(run_name='Training_LIGHTGBM') as mlrun:
-        model = lgb.LGBMClassifier(**MODEL_CONFIG)
-        scores = cross_val_score(model, X, y.values.ravel(), scoring='roc_auc', cv=5)
-        mean_auc = np.mean(scores)
-        mlflow.log_metric("AUC", mean_auc)
-        print(f"New model logged with cross-validated AUC: {mean_auc:.4f}")
+        model = lgb.LGBMClassifier()
+        model.set_params(**MODEL_CONFIG)
+        model.fit(X_train, y_train)
+
+        # Log model
+        mlflow.sklearn.log_model(
+            sk_model=model,
+            artifact_path="models",
+            registered_model_name='LightGBM'
+        )
+
+        # Log parameters
+        mlflow.log_params(MODEL_CONFIG)
+
+        # Predict and log AUC
+        y_pred = model.predict(X_test)
+        auc = roc_auc_score(y_test, y_pred)
+        mlflow.log_metric('AUC', auc)
+
+        print(f"✅ New model trained and logged with AUC: {auc:.4f}")
 
         # Log parameters
         mlflow.log_params(MODEL_CONFIG)
@@ -204,31 +224,3 @@ def get_trained_model():
         )
 
         print(f"Promoted version {latest_version.version} of 'LightGBM' to Production.")
-
-
-    # # Train/test split
-    # X_train, X_test, y_train, y_test = train_test_split(
-    #     X, y, test_size=0.9, random_state=0
-    # )
-
-    # with mlflow.start_run(run_name='run_LightGB') as mlrun:
-    #     model = lgb.LGBMClassifier()
-    #     model.set_params(**MODEL_CONFIG)
-    #     model.fit(X_train, y_train)
-
-    #     # Log model
-    #     mlflow.sklearn.log_model(
-    #         sk_model=model,
-    #         artifact_path="models",
-    #         registered_model_name='LightGBM'
-    #     )
-
-    #     # Log parameters
-    #     mlflow.log_params(MODEL_CONFIG)
-
-    #     # Predict and log AUC
-    #     y_pred = model.predict(X_test)
-    #     auc = roc_auc_score(y_test, y_pred)
-    #     mlflow.log_metric('AUC', auc)
-
-    #     print(f"✅ New model trained and logged with AUC: {auc:.4f}")

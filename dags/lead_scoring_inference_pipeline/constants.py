@@ -17,7 +17,6 @@ EXPERIMENT = "Lead_Scoring_Training_Pipeline"
 # experiment, model name and stage to load the model from mlflow model registry
 MODEL_NAME = "LightGBM"
 STAGE = "Production"
-EXPERIMENT = "Lead_Scoring_Inference_Pipeline"
 
 # list of the features that need to be there in the final encoded dataframe
 ONE_HOT_ENCODED_FEATURES = [
@@ -60,8 +59,7 @@ ONE_HOT_ENCODED_FEATURES = [
     'first_utm_source_c_Level16',
     'first_utm_source_c_Level5',
     'first_utm_source_c_Level14',
-    'first_utm_source_c_others',
-    'app_complete_flag',
+    'first_utm_source_c_others'
 ]
 
 # list of features that need to be one-hot encoded
