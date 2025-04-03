@@ -128,7 +128,7 @@ def prediction_ratio_check():
         timestamp.
 
     SAMPLE USAGE
-        prediction_col_check()
+        prediction_ratio_check()
     '''
     # read the input data
     conn = sqlite3.connect(os.path.join(DB_PATH, DB_FILE_NAME))
@@ -167,7 +167,7 @@ def input_features_check():
         2. Else it logs 'Some of the models inputs are missing'
 
     SAMPLE USAGE
-        input_col_check()
+        input_features_check()
     '''
     # read the input data
     conn = sqlite3.connect(os.path.join(DB_PATH, DB_FILE_NAME))

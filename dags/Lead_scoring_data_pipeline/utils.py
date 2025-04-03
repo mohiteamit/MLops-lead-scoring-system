@@ -7,10 +7,9 @@ import os
 import sqlite3
 from sqlite3 import Error
 
-from Lead_scoring_data_pipeline.constants import DB_FILE_NAME, DB_PATH, DATA_DIRECTORY, INTERACTION_MAPPING, INDEX_COLUMNS_TRAINING, INDEX_COLUMNS_INFERENCE, NOT_FEATURES
+from Lead_scoring_data_pipeline.constants import CSV_FILE_NAME, DB_FILE_NAME, DB_PATH, DATA_DIRECTORY, INTERACTION_MAPPING, INDEX_COLUMNS_TRAINING, INDEX_COLUMNS_INFERENCE, NOT_FEATURES
 from Lead_scoring_data_pipeline.mappings.significant_categorical_level import PLATFORM_LEVELS, MEDIUM_LEVELS, SOURCE_LEVELS
 from Lead_scoring_data_pipeline.mappings.city_tier_mapping import city_tier_mapping
-
 
 ###############################################################################
 # Define the function to build database
@@ -55,7 +54,7 @@ def load_data_into_db():
     db_full_path = os.path.join(DB_PATH, DB_FILE_NAME)
     connection = sqlite3.connect(db_full_path)
     
-    csv_full_path = os.path.join(DATA_DIRECTORY, 'leadscoring.csv')
+    csv_full_path = os.path.join(DATA_DIRECTORY, CSV_FILE_NAME)
     df_lead_scoring = pd.read_csv(csv_full_path)
 
     df_lead_scoring['total_leads_droppped'] = df_lead_scoring['total_leads_droppped'].fillna(0)
