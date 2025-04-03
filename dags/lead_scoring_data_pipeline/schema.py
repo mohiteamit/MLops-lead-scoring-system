@@ -1,4 +1,4 @@
-raw_data_schema = [
+RAW_DATA_SCHEMA = [
     'created_date',
     'city_mapped',
     'first_platform_c',
@@ -46,7 +46,7 @@ raw_data_schema = [
     'app_complete_flag'
 ]
 
-model_input_schema = [
+MODEL_INPUT_SCHEMA = [
     'total_leads_droppped',
     'city_tier',
     'referred_lead',

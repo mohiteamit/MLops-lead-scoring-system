@@ -17,7 +17,6 @@ def build_dbs():
     '''
     db_full_path = os.path.join(DB_PATH, DB_FILE_NAME)
     if os.path.isfile(db_full_path):
-        print("DB already exists")
         return "DB Exists"
     else:
         print("Creating Database")

@@ -4,79 +4,60 @@ Import necessary modules
 """
 import os
 from lead_scoring_data_pipeline.constants import DATA_DIRECTORY, CSV_FILE_NAME, DB_PATH, DB_FILE_NAME
-from lead_scoring_data_pipeline.utils import *
-from lead_scoring_data_pipeline.schema import *
+from lead_scoring_data_pipeline.schema import RAW_DATA_SCHEMA, MODEL_INPUT_SCHEMA
 
 import pandas as pd
 import sqlite3
 
 ###############################################################################
 # Define function to validate raw data's schema
-# ############################################################################## 
+###############################################################################
 
 def raw_data_schema_check():
     '''
-    This function check if all the columns mentioned in schema.py are present in
-    leadscoring.csv file or not.
-
-   
-    INPUTS
-        DATA_DIRECTORY : path of the directory where 'leadscoring.csv' 
-                        file is present
-        raw_data_schema : schema of raw data in the form oa list/tuple as present 
-                          in 'schema.py'
-
-    OUTPUT
-        If the schema is in line then prints 
-        'Raw datas schema is in line with the schema present in schema.py' 
-        else prints
-        'Raw datas schema is NOT in line with the schema present in schema.py'
-
-    
-    SAMPLE USAGE
-        raw_data_schema_check
+    This function verifies that all the columns mentioned in RAW_DATA_SCHEMA 
+    are present in the 'leadscoring.csv' file. Raises a ValueError with a detailed 
+    message if the schema does not match or if file loading fails.
     '''
     file_path = os.path.join(DATA_DIRECTORY, CSV_FILE_NAME)
-    df_lead_data = pd.read_csv(file_path, index_col=[0])
+    try:
+        df_lead_data = pd.read_csv(file_path, index_col=[0])
+    except Exception as e:
+        raise Exception(f"Failed to read CSV file at {file_path}: {e}")
     
-    check = set(df_lead_data.columns) == set(raw_data_schema)
-    if check:
+    if set(df_lead_data.columns) == set(RAW_DATA_SCHEMA):
         print('Raw datas schema is in line with the schema present in schema.py')
     else:
-        print('Raw datas schema is NOT in line with the schema present in schema.py')
+        missing = set(RAW_DATA_SCHEMA) - set(df_lead_data.columns)
+        extra = set(df_lead_data.columns) - set(RAW_DATA_SCHEMA)
+        raise ValueError(f"Raw data schema mismatch: Missing columns {missing}, Unexpected columns {extra}. Please verify the CSV file and schema definitions.")
 
 ###############################################################################
 # Define function to validate model's input schema
-# ############################################################################## 
+###############################################################################
 
 def model_input_schema_check():
     '''
-    This function check if all the columns mentioned in model_input_schema in 
-    schema.py are present in table named in 'model_input' in db file.
-
-   
-    INPUTS
-        DB_FILE_NAME : Name of the database file
-        DB_PATH : path where the db file should be present
-        model_input_schema : schema of models input data in the form oa list/tuple
-                          present as in 'schema.py'
-
-    OUTPUT
-        If the schema is in line then prints 
-        'Models input schema is in line with the schema present in schema.py'
-        else prints
-        'Models input schema is NOT in line with the schema present in schema.py'
-    
-    SAMPLE USAGE
-        model_input_schema_check
+    This function verifies that all the columns mentioned in MODEL_INPUT_SCHEMA 
+    are present in the 'model_input' table in the database. Raises a ValueError with a detailed 
+    message if the schema does not match or if connection/query fails.
     '''
     db_file_path = os.path.join(DB_PATH, DB_FILE_NAME)
-    conn = sqlite3.connect(db_file_path)
+    try:
+        conn = sqlite3.connect(db_file_path)
+    except Exception as e:
+        raise Exception(f"Failed to connect to the database at {db_file_path}: {e}")
     
-    df_model_in = pd.read_sql('select * from model_input', conn)
+    try:
+        df_model_in = pd.read_sql('select * from model_input', conn)
+    except Exception as e:
+        raise Exception(f"Failed to read table 'model_input' from the database at {db_file_path}: {e}")
+    finally:
+        conn.close()
     
-    check = set(df_model_in.columns) == set(model_input_schema)
-    if check:
+    if set(df_model_in.columns) == set(MODEL_INPUT_SCHEMA):
         print('Models input schema is in line with the schema present in schema.py')
     else:
-        print('Models input schema is NOT in line with the schema present in schema.py')
+        missing = set(MODEL_INPUT_SCHEMA) - set(df_model_in.columns)
+        extra = set(df_model_in.columns) - set(MODEL_INPUT_SCHEMA)
+        raise ValueError(f"Model input schema mismatch: Missing columns {missing}, Unexpected columns {extra}. Please verify the database table and schema definitions.")
