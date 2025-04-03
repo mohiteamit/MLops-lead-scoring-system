@@ -5,7 +5,7 @@
 from airflow import DAG
 from airflow.operators.python import PythonOperator
 from datetime import datetime, timedelta
-from lead_scoring_inference_pipeline.utils import encode_features, get_models_prediction, prediction_ratio_check, input_features_check
+from lead_scoring_inference_pipeline.utils import start_mlflow_server_if_not_running, encode_features, get_models_prediction, prediction_ratio_check, input_features_check
 
 ###############################################################################
 # Define default arguments and create an instance of DAG
