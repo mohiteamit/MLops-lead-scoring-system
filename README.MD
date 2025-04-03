@@ -1,3 +1,36 @@
+# Replace 'AUC' with the actual name of the metric you logged (e.g., 'auc', 'accuracy')
+query = """
+SELECT run_uuid, key, value
+FROM metrics
+WHERE key = 'AUC'
+ORDER BY value DESC
+LIMIT 1
+"""
+
+best_run_df = pd.read_sql(query, conn)
+conn.close()
+
+if best_run_df.empty:
+    print("❌ No runs found with the specified metric.")
+else:
+    best_run_id = best_run_df.loc[0, 'run_uuid']
+    best_auc = best_run_df.loc[0, 'value']
+    print(f"✅ Best run ID: {best_run_id}, AUC: {best_auc}")
+
+-------
+
+import mlflow
+
+mlflow.set_tracking_uri("http://0.0.0.0:6006")  # or wherever your MLflow server is
+
+best_model = mlflow.sklearn.load_model(f"runs:/{best_run_id}/model")
+
+-------
+
+
+pip install psutil
+pip install optuna==2.10.0
+
 ## Airflow Setup Instructions
 
 ### A. Update `airflow.cfg`
