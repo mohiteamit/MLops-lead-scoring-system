@@ -8,59 +8,72 @@ import sqlite3
 import os
 from datetime import datetime
 
-from Lead_scoring_inference_pipeline.constants import *
+from lead_scoring_inference_pipeline.constants import DB_FULL_PATH, FEATURES_TO_ENCODE, ONE_HOT_ENCODED_FEATURES, MLFLOW_TRACKING_URI, MODEL_NAME, STAGE, PREDICTION_DIST_TXT
 
 ###############################################################################
 # Define the function to train the model
 ###############################################################################
 
 def encode_features():
-    '''
-    This function one hot encodes the categorical features present in our  
-    training dataset. This encoding is needed for feeding categorical data 
-    to many scikit-learn models.
+    """
+    One-hot encodes the categorical features present in our training dataset.
+    This encoding is needed for feeding categorical data to many scikit-learn models.
 
     INPUTS
-        db_file_name : Name of the database file 
-        db_path : path where the db file should be
-        ONE_HOT_ENCODED_FEATURES : list of the features that needs to be there in the final encoded dataframe
-        FEATURES_TO_ENCODE: list of features  from cleaned data that need to be one-hot encoded
-        **NOTE : You can modify the encode_features function used in heart disease's inference
-        pipeline for this.
-
+        DB_FULL_PATH                  : Complete path of the database file.
+        ONE_HOT_ENCODED_FEATURES      : List of features that should be in the final encoded dataframe.
+        FEATURES_TO_ENCODE            : List of features from cleaned data that need to be one-hot encoded.
+       
     OUTPUT
-        1. Save the encoded features in a table - features
+        1. Saves the encoded features in a table named 'FEATURES'.
+        2. Saves the target variable in a separate table named 'TARGET'.
 
     SAMPLE USAGE
         encode_features()
-    '''
-    conn = sqlite3.connect(os.path.join(DB_PATH, DB_FILE_NAME))
-    model_input_df = pd.read_sql('select * from model_input', conn)
 
-    # create df to hold encoded data and intermediate data
-    df_en = pd.DataFrame(columns=ONE_HOT_ENCODED_FEATURES)
-    df_placeholder = pd.DataFrame()
+    NOTE:
+        Function used in Airflow pipelines. During non-Airflow testing,
+        print statements can help track the progress.
+    """
+    conn = sqlite3.connect(DB_FULL_PATH)
+    input_data_df = pd.read_sql('SELECT * FROM MODEL_INPUT', conn)
 
-    # encode the features using get_dummies()
-    for f in FEATURES_TO_ENCODE:
-        if f in model_input_df.columns:
-            encoded = pd.get_dummies(model_input_df[f])
-            encoded = encoded.add_prefix(f + '_')
-            df_placeholder = pd.concat([df_placeholder, encoded], axis=1)
+    # Create empty DataFrame for encoded data and a placeholder for intermediate data.
+    encoded_features_df = pd.DataFrame(columns=ONE_HOT_ENCODED_FEATURES)
+    intermediate_encoded_df = pd.DataFrame()
+
+    # Encode the features using get_dummies()
+    for feature in FEATURES_TO_ENCODE:
+        if feature in input_data_df.columns:
+            encoded = pd.get_dummies(input_data_df[feature])
+            encoded = encoded.add_prefix(feature + '_')
+            intermediate_encoded_df = pd.concat([intermediate_encoded_df, encoded], axis=1)
         else:
-            print('Feature not found')
-            return model_input_df
+            msg = f"Feature '{feature}' not found in MODEL_INPUT dataframe."
+            print(msg)
+            conn.close()
+            raise ValueError(msg)
 
-    # add the encoded features into a single dataframe
-    for feature in df_en.columns:
-        if feature in model_input_df.columns:
-            df_en[feature] = model_input_df[feature]
-        if feature in df_placeholder.columns:
-            df_en[feature] = df_placeholder[feature]
-    df_en.fillna(0, inplace=True)
+    # Combine the encoded features into a single dataframe
+    for col in encoded_features_df.columns:
+        if col in input_data_df.columns:
+            encoded_features_df[col] = input_data_df[col]
+        if col in intermediate_encoded_df.columns:
+            encoded_features_df[col] = intermediate_encoded_df[col]
 
-    # save the features and target in separate tables
-    df_en.to_sql(name='features_inference', con=conn, if_exists='replace', index=False)
+    encoded_features_df.fillna(0, inplace=True)
+
+    # Save the features and target in separate tables
+    # if 'app_complete_flag' not in encoded_features_df.columns:
+    #     msg = "Target feature 'app_complete_flag' not found in dataframe."
+    #     print(msg)
+    #     conn.close()
+    #     raise ValueError(msg)
+
+    features_to_save_df = encoded_features_df.drop(['app_complete_flag'], axis=1)
+    # target_to_save_df = encoded_features_df[['app_complete_flag']]
+    features_to_save_df.to_sql(name='INFERENCE', con=conn, if_exists='replace', index=False)
+    # target_to_save_df.to_sql(name='TARGET', con=conn, if_exists='replace', index=False)
 
     conn.close()
 
@@ -88,21 +101,21 @@ def get_models_prediction():
         load_model()
     '''
     # set the tracking uri
-    mlflow.set_tracking_uri(TRACKING_URI)
+    mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
 
     # load the latest model from production stage
     loaded_model = mlflow.pyfunc.load_model(model_uri=f"models:/{MODEL_NAME}/{STAGE}")
 
     # read the new data
-    conn = sqlite3.connect(os.path.join(DB_PATH, DB_FILE_NAME))
-    df_fea_inf = pd.read_sql('select * from features_inference', conn)
+    conn = sqlite3.connect(os.path.join(DB_FULL_PATH))
+    df_fea_inf = pd.read_sql('SELECT * FROM INFERENCE', conn)
 
     # run the model to generate the prediction on new data
     y_pred = loaded_model.predict(df_fea_inf)
     df_fea_inf['pred_app_complete_flag'] = y_pred
 
     # store the data in a table
-    df_fea_inf.to_sql(name='predicted_values', con=conn, if_exists='replace', index=False)
+    df_fea_inf.to_sql(name='PREDICTIONS', con=conn, if_exists='replace', index=False)
     conn.close()
 
 ###############################################################################
@@ -131,8 +144,8 @@ def prediction_ratio_check():
         prediction_ratio_check()
     '''
     # read the input data
-    conn = sqlite3.connect(os.path.join(DB_PATH, DB_FILE_NAME))
-    df_pred_val = pd.read_sql('select * from predicted_values', conn)
+    conn = sqlite3.connect(os.path.join(DB_FULL_PATH))
+    df_pred_val = pd.read_sql('SELECT * FROM PREDICTIONS', conn)
 
     # get the distribution of categories in prediction col
     val_cnts = df_pred_val['pred_app_complete_flag'].value_counts(normalize=True)
@@ -140,7 +153,7 @@ def prediction_ratio_check():
     # write the output in a file
     ct = datetime.now()
     st = str(ct) + ' %of 1 = ' + str(val_cnts[1]) + ' %of 2 = ' + str(val_cnts[0])
-    with open(os.path.join(FILE_PATH, 'prediction_distribution.txt'), 'a') as f:
+    with open(os.path.join(PREDICTION_DIST_TXT), 'a') as f:
         f.write(st + "\n")
     conn.close()
 
@@ -170,8 +183,8 @@ def input_features_check():
         input_features_check()
     '''
     # read the input data
-    conn = sqlite3.connect(os.path.join(DB_PATH, DB_FILE_NAME))
-    df_inf = pd.read_sql('select * from features_inference', conn)
+    conn = sqlite3.connect(os.path.join(DB_FULL_PATH))
+    df_inf = pd.read_sql('SELECT * FROM INFERENCE', conn)
 
     # check if all columns are present
     check = set(df_inf.columns) == set(ONE_HOT_ENCODED_FEATURES)

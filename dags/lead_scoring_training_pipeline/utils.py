@@ -71,7 +71,7 @@ def encode_features():
         print statements can help track the progress.
     """
     conn = sqlite3.connect(DB_FULL_PATH)
-    input_data_df = pd.read_sql('SELECT * FROM model_input', conn)
+    input_data_df = pd.read_sql('SELECT * FROM MODEL_INPUT', conn)
 
     # Create empty DataFrame for encoded data and a placeholder for intermediate data.
     encoded_features_df = pd.DataFrame(columns=ONE_HOT_ENCODED_FEATURES)
@@ -84,7 +84,7 @@ def encode_features():
             encoded = encoded.add_prefix(feature + '_')
             intermediate_encoded_df = pd.concat([intermediate_encoded_df, encoded], axis=1)
         else:
-            msg = f"Feature '{feature}' not found in model_input dataframe."
+            msg = f"Feature '{feature}' not found in MODEL_INPUT dataframe."
             print(msg)
             conn.close()
             raise ValueError(msg)

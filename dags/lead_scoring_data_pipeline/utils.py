@@ -160,7 +160,7 @@ def interactions_mapping():
         df_pivot.to_sql(name='interactions_mapped', con=connection, if_exists='replace', index=False)
         
         df_model_input = df_pivot.drop(NOT_FEATURES, axis=1)
-        df_model_input.to_sql(name='model_input', con=connection, if_exists='replace', index=False)
+        df_model_input.to_sql(name='MODEL_INPUT', con=connection, if_exists='replace', index=False)
     except Exception as e:
         raise RuntimeError("Failed to map interactions: " + str(e))
     finally:
