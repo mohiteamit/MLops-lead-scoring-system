@@ -21,7 +21,7 @@ ML_training_dag = DAG(
     dag_id='Lead_scoring_training_pipeline',
     default_args=default_args,
     description='Training pipeline for Lead Scoring System',
-    schedule_interval='@monthly',
+    schedule_interval='@daily',
     catchup=False
 )
 

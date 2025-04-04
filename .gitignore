@@ -14,6 +14,7 @@ system.txt
 mlruns/*
 mlartifacts/*
 notebooks/mlruns/*
+.vscode/*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
