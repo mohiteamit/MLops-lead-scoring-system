@@ -10,7 +10,17 @@ from mlflow.tracking import MlflowClient
 from sklearn.model_selection import cross_val_score, train_test_split
 from sklearn.metrics import roc_auc_score, accuracy_score
 import lightgbm as lgb
-from lead_scoring_training_pipeline.constants import DB_FULL_PATH, ONE_HOT_ENCODED_FEATURES, FEATURES_TO_ENCODE, MLFLOW_DB, MODEL_CONFIG, MLFLOW_TRACKING_URI, EXPERIMENT
+from lead_scoring_training_pipeline.constants import (
+    DB_FULL_PATH, 
+    TABLE_NAME,
+    ONE_HOT_ENCODED_FEATURES, 
+    FEATURES_TO_ENCODE, 
+    MLFLOW_DB, 
+    MODEL_CONFIG, 
+    MLFLOW_TRACKING_URI,
+    EXPERIMENT
+)
+
 from lead_scoring_training_pipeline.constants import MLFLOW_PORT, MLFLOW_BACKEND_STORE_URI, MLFLOW_ARTIFACT_ROOT
 
 def start_mlflow_server_if_not_running():
@@ -78,7 +88,7 @@ def encode_features():
     import pandas as pd
 
     conn = sqlite3.connect(DB_FULL_PATH)
-    input_data_df = pd.read_sql('SELECT * FROM MODEL_INPUT', conn)
+    input_data_df = pd.read_sql(f'SELECT * FROM {TABLE_NAME}', conn)
 
     # Create empty DataFrame for encoded data and a placeholder for intermediate data.
     encoded_features_df = pd.DataFrame(columns=ONE_HOT_ENCODED_FEATURES)

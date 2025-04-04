@@ -1,5 +1,6 @@
 # Training dadatabase
 DB_FULL_PATH = '/home/airflow/dags/lead_scoring_data_pipeline/lead_scoring_data_cleaning.db'
+TABLE_NAME = 'TRAINING'
 
 # MLflow
 MLFLOW_DB = '/home/mlflow/lead_scoring.db'

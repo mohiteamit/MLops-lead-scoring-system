@@ -1,6 +1,5 @@
 # DATA STORE
 DB_FULL_PATH = '/home/airflow/dags/lead_scoring_data_pipeline/lead_scoring_data_cleaning.db'
-TABLE_NAME = 'MODEL_INPUT'
 TABLE_NAME = 'TRAINING'
 
 # INPUT DATA

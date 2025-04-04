@@ -167,6 +167,18 @@ def interactions_mapping(table_name : str):
         
         df_model_input = df_pivot.drop(NOT_FEATURES, axis=1)
         df_model_input.to_sql(name=f'{table_name}', con=connection, if_exists='replace', index=False)
+
+        cursor = connection.cursor()
+        tables_to_drop = [
+            'loaded_data', 
+            'city_tier_mapped', 
+            'categorical_variables_mapped', 
+            'interactions_mapped'
+        ]
+        for table in tables_to_drop:
+            cursor.execute(f"DROP TABLE IF EXISTS {table};")
+            print(f"Dropped table: {table}")
+
     except Exception as e:
         raise RuntimeError("Failed to map interactions: " + str(e))
     finally:
