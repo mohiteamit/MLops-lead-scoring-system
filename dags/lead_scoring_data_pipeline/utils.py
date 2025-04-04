@@ -3,8 +3,20 @@ import os
 import sqlite3
 from sqlite3 import Error
 
-from lead_scoring_data_pipeline.constants import CSV_FILE_NAME, DB_FILE_NAME, DB_PATH, DATA_DIRECTORY, INTERACTION_MAPPING, INDEX_COLUMNS_TRAINING, INDEX_COLUMNS_INFERENCE, NOT_FEATURES
-from lead_scoring_data_pipeline.mappings.significant_categorical_level import PLATFORM_LEVELS, MEDIUM_LEVELS, SOURCE_LEVELS
+from lead_scoring_data_pipeline.constants import (
+    DB_FULL_PATH, 
+    INTERACTION_MAPPING, 
+    INDEX_COLUMNS_TRAINING, 
+    INDEX_COLUMNS_INFERENCE, 
+    NOT_FEATURES
+)
+
+from lead_scoring_data_pipeline.mappings.significant_categorical_level import (
+    PLATFORM_LEVELS, 
+    MEDIUM_LEVELS, 
+    SOURCE_LEVELS
+)
+
 from lead_scoring_data_pipeline.mappings.city_tier_mapping import city_tier_mapping
 
 def build_dbs():
@@ -15,14 +27,13 @@ def build_dbs():
     Returns:
         str: Status message.
     '''
-    db_full_path = os.path.join(DB_PATH, DB_FILE_NAME)
-    if os.path.isfile(db_full_path):
+    if os.path.isfile(DB_FULL_PATH):
         return "DB Exists"
     else:
         print("Creating Database")
         connection = None
         try:
-            connection = sqlite3.connect(db_full_path)
+            connection = sqlite3.connect(DB_FULL_PATH)
             print("New DB Created")
         except Error as e:
             raise RuntimeError("Failed to create the database: " + str(e))
@@ -31,21 +42,19 @@ def build_dbs():
                 connection.close()
         return "DB Created"
 
-def load_data_into_db():
+def load_data_into_db(full_path_to_csv : str):
     '''
     Loads CSV data into the DB, replacing null values in certain columns.
     Raises:
         RuntimeError: If reading CSV, connecting to DB, or writing to DB fails.
     '''
-    db_full_path = os.path.join(DB_PATH, DB_FILE_NAME)
     try:
-        connection = sqlite3.connect(db_full_path)
+        connection = sqlite3.connect(DB_FULL_PATH)
     except Error as e:
         raise RuntimeError("Failed to connect to DB in load_data_into_db: " + str(e))
         
     try:
-        csv_full_path = os.path.join(DATA_DIRECTORY, CSV_FILE_NAME)
-        df_lead_scoring = pd.read_csv(csv_full_path)
+        df_lead_scoring = pd.read_csv(full_path_to_csv)
     except Exception as e:
         connection.close()
         raise RuntimeError("Failed to read CSV file: " + str(e))
@@ -65,9 +74,8 @@ def map_city_tier():
     Raises:
         RuntimeError: If reading from or writing to DB fails.
     '''
-    db_full_path = os.path.join(DB_PATH, DB_FILE_NAME)
     try:
-        connection = sqlite3.connect(db_full_path)
+        connection = sqlite3.connect(DB_FULL_PATH)
     except Error as e:
         raise RuntimeError("Failed to connect to DB in map_city_tier: " + str(e))
     
@@ -93,9 +101,8 @@ def map_categorical_vars():
     Raises:
         RuntimeError: If reading from or writing to DB fails.
     '''
-    db_full_path = os.path.join(DB_PATH, DB_FILE_NAME)
     try:
-        connection = sqlite3.connect(db_full_path)
+        connection = sqlite3.connect(DB_FULL_PATH)
     except Error as e:
         raise RuntimeError("Failed to connect to DB in map_categorical_vars: " + str(e))
 
@@ -129,15 +136,14 @@ def map_categorical_vars():
     finally:
         connection.close()
 
-def interactions_mapping():
+def interactions_mapping(table_name : str):
     '''
     Maps interaction columns into unique interactions per provided mappings.
     Raises:
         RuntimeError: If reading from or writing to DB fails.
     '''
-    db_full_path = os.path.join(DB_PATH, DB_FILE_NAME)
     try:
-        connection = sqlite3.connect(db_full_path)
+        connection = sqlite3.connect(DB_FULL_PATH)
     except Error as e:
         raise RuntimeError("Failed to connect to DB in interactions_mapping: " + str(e))
     
@@ -160,7 +166,7 @@ def interactions_mapping():
         df_pivot.to_sql(name='interactions_mapped', con=connection, if_exists='replace', index=False)
         
         df_model_input = df_pivot.drop(NOT_FEATURES, axis=1)
-        df_model_input.to_sql(name='MODEL_INPUT', con=connection, if_exists='replace', index=False)
+        df_model_input.to_sql(name=f'{table_name}', con=connection, if_exists='replace', index=False)
     except Exception as e:
         raise RuntimeError("Failed to map interactions: " + str(e))
     finally:

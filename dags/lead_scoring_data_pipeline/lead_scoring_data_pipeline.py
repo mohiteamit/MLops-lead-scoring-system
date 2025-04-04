@@ -10,7 +10,8 @@ from datetime import datetime, timedelta
 
 from lead_scoring_data_pipeline.utils import build_dbs, load_data_into_db, map_city_tier, map_categorical_vars, interactions_mapping
 from lead_scoring_data_pipeline.data_validation_checks import raw_data_schema_check, model_input_schema_check
-
+from lead_scoring_data_pipeline.constants import CSV_DATA, TABLE_NAME
+from lead_scoring_data_pipeline.schema import RAW_DATA_SCHEMA, MODEL_INPUT_SCHEMA
 
 ###############################################################################
 # Define default arguments and DAG
@@ -43,23 +44,25 @@ building_db = PythonOperator(
 # Create a task for raw_data_schema_check() function with task_id 'checking_raw_data_schema'
 # ##############################################################################
 checking_raw_data_schema = PythonOperator(
-            task_id = 'checking_raw_data_schema',
-            python_callable = raw_data_schema_check,
-            dag = ML_data_cleaning_dag)
+        task_id = 'checking_raw_data_schema',
+        python_callable = raw_data_schema_check,
+        op_args=[CSV_DATA, RAW_DATA_SCHEMA],
+        dag = ML_data_cleaning_dag)
 ###############################################################################
 # Create a task for load_data_into_db() function with task_id 'loading_data'
 # #############################################################################
 loading_data = PythonOperator(
-            task_id = 'loading_data',
-            python_callable = load_data_into_db,
-            dag = ML_data_cleaning_dag)
+        task_id = 'loading_data',
+        python_callable = load_data_into_db,
+        op_args=[CSV_DATA],
+        dag = ML_data_cleaning_dag)
 ###############################################################################
 # Create a task for map_city_tier() function with task_id 'mapping_city_tier'
 # ##############################################################################
 mapping_city_tier = PythonOperator(
-            task_id = 'mapping_city_tier',
-            python_callable = map_city_tier,
-            dag = ML_data_cleaning_dag)
+        task_id = 'mapping_city_tier',
+        python_callable = map_city_tier,
+        dag = ML_data_cleaning_dag)
 ###############################################################################
 # Create a task for map_categorical_vars() function with task_id 'mapping_categorical_vars'
 # ##############################################################################
@@ -73,14 +76,16 @@ mapping_categorical_vars = PythonOperator(
 mapping_interactions = PythonOperator(
         task_id = 'mapping_interactions',
         python_callable = interactions_mapping,
+        op_args=[TABLE_NAME],
         dag = ML_data_cleaning_dag)
 ###############################################################################
 # Create a task for model_input_schema_check() function with task_id 'checking_model_inputs_schema'
 # ##############################################################################
 checking_model_inputs_schema = PythonOperator(
-            task_id = 'checking_model_inputs_schema',
-            python_callable = model_input_schema_check,
-            dag = ML_data_cleaning_dag)
+        task_id = 'checking_model_inputs_schema',
+        python_callable = model_input_schema_check,
+        op_args=[TABLE_NAME, MODEL_INPUT_SCHEMA],
+        dag = ML_data_cleaning_dag)
 ###############################################################################
 # Define the relation between the tasks
 # ##############################################################################

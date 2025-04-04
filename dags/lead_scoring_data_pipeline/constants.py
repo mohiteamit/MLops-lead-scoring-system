@@ -1,8 +1,10 @@
-# Database configuration
-DB_FILE_NAME = 'lead_scoring_data_cleaning.db'
-DB_PATH = "/home/airflow/dags/lead_scoring_data_pipeline/"
-DATA_DIRECTORY = '/home/airflow/dags/lead_scoring_data_pipeline/data/'
-CSV_FILE_NAME = 'leadscoring.csv'
+# DATA STORE
+DB_FULL_PATH = '/home/airflow/dags/lead_scoring_data_pipeline/lead_scoring_data_cleaning.db'
+TABLE_NAME = 'MODEL_INPUT'
+TABLE_NAME = 'TRAINING'
+
+# INPUT DATA
+CSV_DATA = '/home/airflow/dags/lead_scoring_data_pipeline/data/leadscoring.csv'
 
 INTERACTION_MAPPING = "/home/airflow/dags/lead_scoring_data_pipeline/mappings/interaction_mapping.csv"
 

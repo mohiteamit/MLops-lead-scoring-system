@@ -52,9 +52,12 @@ def start_mlflow_server_if_not_running():
 
 def encode_features():
     """
-    One-hot encodes the categorical features present in our training dataset.
+    One-hot encodes the categorical features present in our training or inference dataset.
     This encoding is needed for feeding categorical data to many scikit-learn models.
-
+    
+    For training data, the target variable 'app_complete_flag' is expected and saved separately.
+    For inference data, where 'app_complete_flag' may be missing, only the features are saved.
+    
     INPUTS
         DB_FULL_PATH                  : Complete path of the database file.
         ONE_HOT_ENCODED_FEATURES      : List of features that should be in the final encoded dataframe.
@@ -62,7 +65,7 @@ def encode_features():
        
     OUTPUT
         1. Saves the encoded features in a table named 'FEATURES'.
-        2. Saves the target variable in a separate table named 'TARGET'.
+        2. For training data (if present), saves the target variable in a separate table named 'TARGET'.
 
     SAMPLE USAGE
         encode_features()
@@ -71,6 +74,9 @@ def encode_features():
         Function used in Airflow pipelines. During non-Airflow testing,
         print statements can help track the progress.
     """
+    import sqlite3
+    import pandas as pd
+
     conn = sqlite3.connect(DB_FULL_PATH)
     input_data_df = pd.read_sql('SELECT * FROM MODEL_INPUT', conn)
 
@@ -99,17 +105,16 @@ def encode_features():
 
     encoded_features_df.fillna(0, inplace=True)
 
-    # Save the features and target in separate tables
-    if 'app_complete_flag' not in encoded_features_df.columns:
-        msg = "Target feature 'app_complete_flag' not found in dataframe."
-        print(msg)
-        conn.close()
-        raise ValueError(msg)
-
-    features_to_save_df = encoded_features_df.drop(['app_complete_flag'], axis=1)
-    target_to_save_df = encoded_features_df[['app_complete_flag']]
-    features_to_save_df.to_sql(name='FEATURES', con=conn, if_exists='replace', index=False)
-    target_to_save_df.to_sql(name='TARGET', con=conn, if_exists='replace', index=False)
+    # Save the features and target in separate tables if target exists.
+    if 'app_complete_flag' in encoded_features_df.columns:
+        features_to_save_df = encoded_features_df.drop(['app_complete_flag'], axis=1)
+        target_to_save_df = encoded_features_df[['app_complete_flag']]
+        features_to_save_df.to_sql(name='FEATURES', con=conn, if_exists='replace', index=False)
+        target_to_save_df.to_sql(name='TARGET', con=conn, if_exists='replace', index=False)
+    else:
+        # Inference mode: target column is not available, so save only features.
+        print("Target feature 'app_complete_flag' not found. Inference mode detected; skipping target encoding.")
+        encoded_features_df.to_sql(name='FEATURES', con=conn, if_exists='replace', index=False)
 
     conn.close()
 
