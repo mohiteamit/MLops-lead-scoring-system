@@ -17,42 +17,6 @@ from lead_scoring_inference_pipeline.constants import (
     PREDICTION_DIST_TXT
 )
 
-# def start_mlflow_server_if_not_running():
-#     """
-#     Checks if MLflow is running on the given port. If not, attempts to start it.
-    
-#     Args:
-#         port (int): Port number to check/start MLflow on.
-#         backend_store_uri (str): Path to the SQLite backend store URI.
-#         artifact_root (str): Directory to store MLflow artifacts.
-    
-#     Raises:
-#         RuntimeError: If MLflow fails to start.
-#     """
-#     def is_port_in_use(port):
-#         """Check if a port is already being used."""
-#         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-#             return s.connect_ex(('0.0.0.0', port)) == 0 or s.connect_ex(('127.0.0.1', port)) == 0
-
-#     if not is_port_in_use(MLFLOW_PORT):
-#         try:
-#             print("MLflow is not running. Attempting to start it...")
-#             subprocess.Popen([
-#                 "mlflow", "server",
-#                 "--backend-store-uri", MLFLOW_BACKEND_STORE_URI,
-#                 "--default-artifact-root", MLFLOW_ARTIFACT_ROOT,
-#                 "--port", str(MLFLOW_PORT),
-#                 "--host", "0.0.0.0"
-#             ])
-#             time.sleep(5)  # Give server time to start
-#             if not is_port_in_use(MLFLOW_PORT):
-#                 raise RuntimeError("Failed to start MLflow server.")
-#             print(f"MLflow server started on port {MLFLOW_PORT}.")
-#         except Exception as e:
-#             print(f"Error starting MLflow: {e}")
-#             raise e
-#     else:
-#         print(f"MLflow server already running on port {MLFLOW_PORT}.")
 
 # def encode_features():
 #     """
@@ -177,7 +141,7 @@ def get_models_prediction():
 
         # Read inference data from the database.
         connection = sqlite3.connect(os.path.join(DB_FULL_PATH))
-        inference_df = pd.read_sql('SELECT * FROM INFERENCE', connection)
+        inference_df = pd.read_sql('SELECT * FROM FEATURES', connection)
 
         # Generate predictions and store in DataFrame.
         predictions = loaded_model.predict(inference_df)
