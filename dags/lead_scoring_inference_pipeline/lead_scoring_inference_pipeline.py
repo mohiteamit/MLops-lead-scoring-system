@@ -126,4 +126,4 @@ checking_model_prediction_ratio = PythonOperator(
 ###############################################################################
 # Define relation between tasks
 # ##############################################################################
-checking_raw_data_schema >> loading_data >> mapping_city_tier >> mapping_categorical_vars >> mapping_interactions >> checking_model_inputs_schema  >> encoding_categorical_variables >> generating_models_prediction >> checking_model_prediction_ratio
+start_mlflow >> checking_raw_data_schema >> loading_data >> mapping_city_tier >> mapping_categorical_vars >> mapping_interactions >> checking_model_inputs_schema  >> encoding_categorical_variables >> generating_models_prediction >> checking_model_prediction_ratio

@@ -1,5 +1,7 @@
 #
+airflow-webserver.pid
 lead_scoring_data_cleaning.db
+lead_scoring_data_cleaning.db*
 02_training_pipeline/notebooks/mlruns/*
 02_training_pipeline/notebooks/mlruns
 airflow.db
