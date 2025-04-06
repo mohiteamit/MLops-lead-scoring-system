@@ -46,7 +46,7 @@ default_args = {
 
 # Define the DAG using a context manager with updated description and tags.
 with DAG(
-        dag_id='Lead_scoring_inference_pipeline',
+        dag_id='lead_scoring_inference_pipeline',
         default_args=default_args,
         description='Lead Scoring Inference Pipeline that processes raw data, validates schemas, loads data, maps features, and generates predictions.',
         schedule_interval='@daily',
