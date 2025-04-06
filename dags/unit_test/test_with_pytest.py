@@ -5,8 +5,6 @@ import warnings
 import sys
 import os
 
-sys.path.insert(0, os.path.abspath("/home/airflow/dags"))
-
 from lead_scoring_data_pipeline.utils import (
     build_dbs,
     load_data_into_db,
@@ -19,7 +17,9 @@ from lead_scoring_data_pipeline.constants import (
     DB_FULL_PATH
 )
 
-from .constants import (
+sys.path.insert(0, os.path.abspath("/home/airflow/dags"))
+
+from unit_test.constants import (
     UNIT_TEST_DB_PATH,
     UNIT_TEST_DB_FILE_NAME,
     TEST_DATA_CSV_PATH

@@ -8,7 +8,7 @@ import os
 sys.path.insert(0, os.path.abspath("/home/airflow/dags"))
 
 # Import test functions
-from unit_test import test_functions  # Rename if you're keeping functions inline
+import unit_test.test_with_pytest as test_functions
 
 default_args = {
     'owner': 'airflow',
