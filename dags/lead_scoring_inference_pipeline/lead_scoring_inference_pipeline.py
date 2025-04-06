@@ -16,8 +16,8 @@ from lead_scoring_inference_pipeline.constants import (CSV_DATA, TABLE_NAME)
 
 default_args = {
     'owner': 'airflow',
-    'start_date': datetime(2023, 9, 14),
-    'retries': 1,
+    'start_date': datetime(2025, 1, 1),
+    'retries': 0,
     'retry_delay': timedelta(seconds=5)
 }
 
@@ -27,7 +27,8 @@ Lead_scoring_inference_dag = DAG(
     default_args=default_args,
     description='Inference pipeline of Lead Scoring system',
     schedule_interval='@daily',
-    catchup=False
+    catchup=False,
+    tags=['inference']
 )
 
 start_mlflow = PythonOperator(

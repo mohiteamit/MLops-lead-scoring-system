@@ -12,8 +12,8 @@ from lead_scoring_training_pipeline.utils import start_mlflow_server_if_not_runn
 ##############################################################################
 default_args = {
     'owner': 'airflow',
-    'start_date': datetime(2023, 9, 14),
-    'retries': 1,
+    'start_date': datetime(2025, 1, 1),
+    'retries': 0,
     'retry_delay': timedelta(seconds=5)
 }
 
@@ -22,7 +22,8 @@ ML_training_dag = DAG(
     default_args=default_args,
     description='Training pipeline for Lead Scoring System',
     schedule_interval='@daily',
-    catchup=False
+    catchup=False,
+    tags=['model training']
 )
 
 ##############################################################################

@@ -19,8 +19,8 @@ from lead_scoring_data_pipeline.schema import RAW_DATA_SCHEMA, MODEL_INPUT_SCHEM
 
 default_args = {
     'owner': 'airflow',
-    'start_date': datetime(2023, 9, 14),
-    'retries': 1,
+    'start_date': datetime(2025, 1, 1),
+    'retries': 0,
     'retry_delay': timedelta(seconds=5)
 }
 
@@ -30,7 +30,8 @@ ML_data_cleaning_dag = DAG(
     default_args=default_args,
     description='DAG to run data pipeline for lead scoring',
     schedule_interval='@daily',
-    catchup=False
+    catchup=False,
+    tags=['cleaning', 'data prep']
 )
 
 ###############################################################################
