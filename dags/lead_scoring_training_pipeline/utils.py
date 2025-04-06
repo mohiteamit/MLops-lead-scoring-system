@@ -134,12 +134,13 @@ def get_trained_model():
     - Fetches the best run by AUC from the MLflow SQLite DB.
     - Sets tracking URI and experiment.
     - Trains a new LightGBM model.
-    - Logs model, hyperparameters, metrics (AUC, Accuracy), and ROC plot to MLflow.
+    - Logs model, hyperparameters, metrics (AUC, Accuracy, F1, Precision), and ROC plot to MLflow.
     - Promotes the latest model version to Production.
 
     Raises:
         ValueError: If no runs are found or data is missing.
     """
+    from sklearn.metrics import roc_auc_score, accuracy_score, roc_curve, f1_score, precision_score
 
     # Step 1: Get best run info from MLflow DB
     conn = sqlite3.connect(f"file:{MLFLOW_DB}?mode=ro", uri=True)
@@ -211,9 +212,13 @@ def get_trained_model():
         # Log metrics
         auc = roc_auc_score(y_test, y_pred_proba)
         acc = accuracy_score(y_test, y_pred)
+        f1 = f1_score(y_test, y_pred, average='binary')
+        precision = precision_score(y_test, y_pred, average='binary')
         mlflow.log_metric('AUC', auc)
         mlflow.log_metric('Accuracy', acc)
-        print(f"AUC: {auc:.4f} | Accuracy: {acc:.4f}")
+        mlflow.log_metric('F1', f1)
+        mlflow.log_metric('Precision', precision)
+        print(f"AUC: {auc:.4f} | Accuracy: {acc:.4f} | F1: {f1:.4f} | Precision: {precision:.4f}")
 
         # Log ROC plot
         fpr, tpr, _ = roc_curve(y_test, y_pred_proba)
