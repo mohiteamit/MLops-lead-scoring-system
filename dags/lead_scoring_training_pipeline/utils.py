@@ -134,10 +134,11 @@ def get_trained_model():
     - Fetches the best run by AUC from the MLflow SQLite DB.
     - Sets tracking URI and experiment.
     - Trains a new LightGBM model.
-    - Logs model, parameters, and AUC to MLflow.
+    - Logs model, hyperparameters, metrics (AUC, Accuracy), and ROC plot to MLflow.
+    - Promotes the latest model version to Production.
 
-    In an Airflow pipeline, exceptions are raised for error handling.
-    Print statements are kept for testing outside of Airflow.
+    Raises:
+        ValueError: If no runs are found or data is missing.
     """
 
     # Step 1: Get best run info from MLflow DB
@@ -188,10 +189,14 @@ def get_trained_model():
         X, y, test_size=0.9, random_state=0
     )
 
-    with mlflow.start_run(run_name='Training_LIGHTGBM') as mlrun:
+    with mlflow.start_run(run_name='Training_LIGHTGBM'):
         model = lgb.LGBMClassifier()
         model.set_params(**MODEL_CONFIG)
         model.fit(X_train, y_train)
+
+        # Predict
+        y_pred = model.predict(X_test)
+        y_pred_proba = model.predict_proba(X_test)[:, 1]
 
         # Log model
         mlflow.sklearn.log_model(
@@ -203,56 +208,31 @@ def get_trained_model():
         # Log parameters
         mlflow.log_params(MODEL_CONFIG)
 
-        # Predict and log AUC
-        y_pred = model.predict(X_test)
-        auc = roc_auc_score(y_test, y_pred)
-        mlflow.log_metric('AUC', auc)
-
-        print(f"New model trained and logged with AUC: {auc:.4f}")
-
-        # Calculate and log Accuracy
+        # Log metrics
+        auc = roc_auc_score(y_test, y_pred_proba)
         acc = accuracy_score(y_test, y_pred)
+        mlflow.log_metric('AUC', auc)
         mlflow.log_metric('Accuracy', acc)
-        print(f"Accuracy: {acc:.4f}")
+        print(f"AUC: {auc:.4f} | Accuracy: {acc:.4f}")
 
-        # Compute ROC curve
-        fpr, tpr, _ = roc_curve(y_test, y_pred)
-
-        # Plot
+        # Log ROC plot
+        fpr, tpr, _ = roc_curve(y_test, y_pred_proba)
         plt.figure()
         plt.plot(fpr, tpr, label=f"AUC = {auc:.2f}")
         plt.xlabel("False Positive Rate")
         plt.ylabel("True Positive Rate")
         plt.title("ROC Curve")
         plt.legend(loc="lower right")
-
-        # Save and log artifact
         plot_path = "roc_curve.png"
         plt.savefig(plot_path)
         mlflow.log_artifact(plot_path)
         plt.close()
 
-        # Log parameters
-        mlflow.log_params(MODEL_CONFIG)
-
-        # Register the model
-        mlflow.sklearn.log_model(
-            sk_model=model,
-            artifact_path="models",
-            registered_model_name="LightGBM"  # Registers or creates a new version
-        )
-
-        # Get the client and current run ID
+        # Promote latest model to Production
         client = MlflowClient()
-
-        # Get all versions for this model, sort by creation time, and get the latest
         latest_versions = client.search_model_versions(f"name='LightGBM'")
-        latest_version = max(
-            latest_versions,
-            key=lambda v: int(v.version)
-        )
+        latest_version = max(latest_versions, key=lambda v: int(v.version))
 
-        # Promote to Production
         client.transition_model_version_stage(
             name="LightGBM",
             version=latest_version.version,
