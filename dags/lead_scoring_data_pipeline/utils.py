@@ -174,19 +174,21 @@ def interactions_mapping(table_name : str):
         connection.close()
 
 
+import sqlite3
+from sqlite3 import Error
+
 def clean_up_db():
     '''
     Removes all tables created by data pipeline except the final data feed to train pipeline
+    and compacts the database using VACUUM.
 
     Raises:
         RuntimeError: If reading from or writing to DB fails.
     '''
     try:
         connection = sqlite3.connect(DB_FULL_PATH)
-    except Error as e:
-        raise RuntimeError("Failed to connect to DB in interactions_mapping: " + str(e))
-   
         cursor = connection.cursor()
+        
         tables_to_drop = [
             'loaded_data', 
             'city_tier_mapped', 
@@ -196,8 +198,13 @@ def clean_up_db():
         for table in tables_to_drop:
             cursor.execute(f"DROP TABLE IF EXISTS {table};")
             print(f"Dropped table: {table}")
+        
+        # Compact the database file
+        cursor.execute("VACUUM;")
+        print("Database compacted with VACUUM.")
 
-    except Exception as e:
-        raise RuntimeError("Failed to map interactions: " + str(e))
+    except Error as e:
+        raise RuntimeError("Failed to connect to or modify DB: " + str(e))
+
     finally:
         connection.close()
