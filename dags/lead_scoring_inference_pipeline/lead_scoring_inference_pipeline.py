@@ -81,6 +81,13 @@ mapping_interactions = PythonOperator(
     op_args=[TABLE_NAME],
     dag=Lead_scoring_inference_dag)
 ###############################################################################
+# Create a task for clean_up_db() function with task_id 'clean_up_db'
+# ##############################################################################
+clean_up_db = PythonOperator(
+    task_id='cleaning_db',
+    python_callable=clean_up_db,
+    dag=ML_data_cleaning_dag)
+###############################################################################
 # Create a task for model_input_schema_check() function with task_id 'checking_model_inputs_schema'
 # ##############################################################################
 checking_model_inputs_schema = PythonOperator(
@@ -126,4 +133,4 @@ checking_model_prediction_ratio = PythonOperator(
 ###############################################################################
 # Define relation between tasks
 # ##############################################################################
-start_mlflow >> checking_raw_data_schema >> loading_data >> mapping_city_tier >> mapping_categorical_vars >> mapping_interactions >> checking_model_inputs_schema >> encoding_categorical_variables >> generating_models_prediction >> checking_model_prediction_ratio
+start_mlflow >> checking_raw_data_schema >> loading_data >> mapping_city_tier >> mapping_categorical_vars >> mapping_interactions >> clean_up_db >> checking_model_inputs_schema >> encoding_categorical_variables >> generating_models_prediction >> checking_model_prediction_ratio

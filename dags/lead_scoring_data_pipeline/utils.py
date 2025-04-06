@@ -168,6 +168,24 @@ def interactions_mapping(table_name : str):
         df_model_input = df_pivot.drop(NOT_FEATURES, axis=1)
         df_model_input.to_sql(name=f'{table_name}', con=connection, if_exists='replace', index=False)
 
+    except Exception as e:
+        raise RuntimeError("Failed to map interactions: " + str(e))
+    finally:
+        connection.close()
+
+
+def clean_up_db():
+    '''
+    Removes all tables created by data pipeline except the final data feed to train pipeline
+
+    Raises:
+        RuntimeError: If reading from or writing to DB fails.
+    '''
+    try:
+        connection = sqlite3.connect(DB_FULL_PATH)
+    except Error as e:
+        raise RuntimeError("Failed to connect to DB in interactions_mapping: " + str(e))
+   
         cursor = connection.cursor()
         tables_to_drop = [
             'loaded_data', 

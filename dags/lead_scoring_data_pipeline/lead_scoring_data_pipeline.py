@@ -8,7 +8,7 @@ from airflow.operators.python import PythonOperator
 
 from datetime import datetime, timedelta
 
-from lead_scoring_data_pipeline.utils import build_dbs, load_data_into_db, map_city_tier, map_categorical_vars, interactions_mapping
+from lead_scoring_data_pipeline.utils import build_dbs, load_data_into_db, map_city_tier, map_categorical_vars, interactions_mapping, clean_up_db
 from lead_scoring_data_pipeline.data_validation_checks import raw_data_schema_check, model_input_schema_check
 from lead_scoring_data_pipeline.constants import CSV_DATA, TABLE_NAME
 from lead_scoring_data_pipeline.schema import RAW_DATA_SCHEMA, MODEL_INPUT_SCHEMA
@@ -87,6 +87,14 @@ checking_model_inputs_schema = PythonOperator(
     op_args=[TABLE_NAME, MODEL_INPUT_SCHEMA],
     dag=ML_data_cleaning_dag)
 ###############################################################################
+# Create a task for clean_up_db() function with task_id 'clean_up_db'
+# ##############################################################################
+clean_up_db = PythonOperator(
+    task_id='cleaning_db',
+    python_callable=clean_up_db,
+    dag=ML_data_cleaning_dag)
+###############################################################################
 # Define the relation between the tasks
 # ##############################################################################
-building_db >> checking_raw_data_schema >> loading_data >> mapping_city_tier >> mapping_categorical_vars >> mapping_interactions >> checking_model_inputs_schema
+
+building_db >> checking_raw_data_schema >> loading_data >> mapping_city_tier >> mapping_categorical_vars >> mapping_interactions >> checking_model_inputs_schema >> clean_up_db
