@@ -1,6 +1,12 @@
 import sqlite3
 import pandas as pd
 import warnings
+
+import sys
+import os
+
+sys.path.insert(0, os.path.abspath("/home/airflow/dags"))
+
 from lead_scoring_data_pipeline.utils import (
     build_dbs,
     load_data_into_db,
@@ -8,8 +14,12 @@ from lead_scoring_data_pipeline.utils import (
     map_categorical_vars,
     interactions_mapping
 )
+
 from lead_scoring_data_pipeline.constants import (
-    DB_FULL_PATH,
+    DB_FULL_PATH
+)
+
+from .constants import (
     UNIT_TEST_DB_PATH,
     UNIT_TEST_DB_FILE_NAME,
     TEST_DATA_CSV_PATH
@@ -18,19 +28,17 @@ from lead_scoring_data_pipeline.constants import (
 warnings.filterwarnings("ignore")
 
 def test_load_data_into_db():
-    build_dbs()
     load_data_into_db(TEST_DATA_CSV_PATH)
-
     conn = sqlite3.connect(DB_FULL_PATH)
+
     loaded_data = pd.read_sql('SELECT * FROM loaded_data', conn)
 
     conn_ut = sqlite3.connect(UNIT_TEST_DB_PATH + UNIT_TEST_DB_FILE_NAME)
     test_case = pd.read_sql('SELECT * FROM loaded_data_test_case', conn_ut)
-
     conn.close()
     conn_ut.close()
 
-    assert test_case.equals(loaded_data), "❌ Data mismatch in `load_data_into_db()`"
+    assert test_case.equals(loaded_data), "Data mismatch in load_data_into_db()"
 
 def test_map_city_tier():
     map_city_tier()
@@ -44,7 +52,7 @@ def test_map_city_tier():
     conn.close()
     conn_ut.close()
 
-    assert expected_df.equals(output_df), "❌ Data mismatch in `map_city_tier()`"
+    assert expected_df.equals(output_df), "Data mismatch in map_city_tier()"
 
 def test_map_categorical_vars():
     map_categorical_vars()
@@ -58,7 +66,7 @@ def test_map_categorical_vars():
     conn.close()
     conn_ut.close()
 
-    assert expected_df.equals(output_df), "❌ Data mismatch in `map_categorical_vars()`"
+    assert expected_df.equals(output_df), "Data mismatch in map_categorical_vars()"
 
 def test_interactions_mapping():
     interactions_mapping("final_output")
@@ -72,4 +80,4 @@ def test_interactions_mapping():
     conn.close()
     conn_ut.close()
 
-    assert expected_df.equals(output_df), "❌ Data mismatch in `interactions_mapping()`"
+    assert expected_df.equals(output_df), "Data mismatch in interactions_mapping()"
