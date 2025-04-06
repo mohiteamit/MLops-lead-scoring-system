@@ -1,4 +1,5 @@
 #
+screenshots/*
 roc_curve.png
 Grader_Rubrics_Assignment_Learner.xlsx
 airflow-webserver.pid
