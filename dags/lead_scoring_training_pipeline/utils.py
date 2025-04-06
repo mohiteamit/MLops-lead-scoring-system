@@ -8,7 +8,8 @@ import mlflow
 import mlflow.sklearn
 from mlflow.tracking import MlflowClient
 from sklearn.model_selection import cross_val_score, train_test_split
-from sklearn.metrics import roc_auc_score, accuracy_score
+from sklearn.metrics import roc_auc_score, accuracy_score, roc_curve
+import matplotlib.pyplot as plt
 import lightgbm as lgb
 from lead_scoring_training_pipeline.constants import (
     DB_FULL_PATH, 
@@ -207,7 +208,29 @@ def get_trained_model():
         auc = roc_auc_score(y_test, y_pred)
         mlflow.log_metric('AUC', auc)
 
-        print(f"✅ New model trained and logged with AUC: {auc:.4f}")
+        print(f"New model trained and logged with AUC: {auc:.4f}")
+
+        # Calculate and log Accuracy
+        acc = accuracy_score(y_test, y_pred)
+        mlflow.log_metric('Accuracy', acc)
+        print(f"Accuracy: {acc:.4f}")
+
+        # Compute ROC curve
+        fpr, tpr, _ = roc_curve(y_test, y_pred)
+
+        # Plot
+        plt.figure()
+        plt.plot(fpr, tpr, label=f"AUC = {auc:.2f}")
+        plt.xlabel("False Positive Rate")
+        plt.ylabel("True Positive Rate")
+        plt.title("ROC Curve")
+        plt.legend(loc="lower right")
+
+        # Save and log artifact
+        plot_path = "roc_curve.png"
+        plt.savefig(plot_path)
+        mlflow.log_artifact(plot_path)
+        plt.close()
 
         # Log parameters
         mlflow.log_params(MODEL_CONFIG)
@@ -221,7 +244,6 @@ def get_trained_model():
 
         # Get the client and current run ID
         client = MlflowClient()
-        run_id = mlflow.active_run().info.run_id
 
         # Get all versions for this model, sort by creation time, and get the latest
         latest_versions = client.search_model_versions(f"name='LightGBM'")
