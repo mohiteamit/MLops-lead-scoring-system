@@ -1,145 +1,75 @@
-##############################################################################
-# Import the necessary modules
-# #############################################################################
-from utils import *
-from constants import *
-
+import sqlite3
+import pandas as pd
 import warnings
+from lead_scoring_data_pipeline.utils import (
+    build_dbs,
+    load_data_into_db,
+    map_city_tier,
+    map_categorical_vars,
+    interactions_mapping
+)
+from lead_scoring_data_pipeline.constants import (
+    DB_FULL_PATH,
+    UNIT_TEST_DB_PATH,
+    UNIT_TEST_DB_FILE_NAME,
+    TEST_DATA_CSV_PATH
+)
+
 warnings.filterwarnings("ignore")
 
-
-###############################################################################
-# Write test cases for load_data_into_db() function
-# ##############################################################################
-
 def test_load_data_into_db():
-    """_summary_
-    This function checks if the load_data_into_db function is working properly by
-    comparing its output with test cases provided in the db in a table named
-    'loaded_data_test_case'
+    build_dbs()
+    load_data_into_db(TEST_DATA_CSV_PATH)
 
-    INPUTS
-        DB_FILE_NAME : Name of the database file 'utils_output.db'
-        DB_PATH : path where the db file should be present
-        UNIT_TEST_DB_FILE_NAME: Name of the test database file 'unit_test_cases.db'
+    conn = sqlite3.connect(DB_FULL_PATH)
+    loaded_data = pd.read_sql('SELECT * FROM loaded_data', conn)
 
-    SAMPLE USAGE
-        output=test_get_data()
+    conn_ut = sqlite3.connect(UNIT_TEST_DB_PATH + UNIT_TEST_DB_FILE_NAME)
+    test_case = pd.read_sql('SELECT * FROM loaded_data_test_case', conn_ut)
 
-    """
-    load_data_into_db()
-
-    conn = sqlite3.connect(DB_PATH+DB_FILE_NAME)
-    print("Reading data from loaded_data table")
-    loaded_data = pd.read_sql('select * from loaded_data', conn)
-    
-    conn_ut = sqlite3.connect(DB_PATH+UNIT_TEST_DB_FILE_NAME)
-    print("Reading data from loaded_data_test_case table")
-    test_case_loaded_data = pd.read_sql('select * from loaded_data_test_case', conn_ut)
-    
     conn.close()
     conn_ut.close()
-    
-    assert test_case_loaded_data.equals(loaded_data), "Dataframes are not same"
-    
 
-###############################################################################
-# Write test cases for map_city_tier() function
-# ##############################################################################
+    assert test_case.equals(loaded_data), "❌ Data mismatch in `load_data_into_db()`"
+
 def test_map_city_tier():
-    """_summary_
-    This function checks if map_city_tier function is working properly by
-    comparing its output with test cases provided in the db in a table named
-    'city_tier_mapped_test_case'
-
-    INPUTS
-        DB_FILE_NAME : Name of the database file 'utils_output.db'
-        DB_PATH : path where the db file should be present
-        UNIT_TEST_DB_FILE_NAME: Name of the test database file 'unit_test_cases.db'
-
-    SAMPLE USAGE
-        output=test_map_city_tier()
-
-    """
     map_city_tier()
-    
-    conn = sqlite3.connect(DB_PATH+DB_FILE_NAME)
-    print("Reading data from city_tier_mapped table")
-    city_tier_map = pd.read_sql('select * from city_tier_mapped', conn)
-    
-    conn_ut = sqlite3.connect(DB_PATH+UNIT_TEST_DB_FILE_NAME)
-    print("Reading data from city_tier_mapped_test_case table")
-    test_case_city_tier = pd.read_sql('select * from city_tier_mapped_test_case', conn_ut)
-    
+
+    conn = sqlite3.connect(DB_FULL_PATH)
+    output_df = pd.read_sql('SELECT * FROM city_tier_mapped', conn)
+
+    conn_ut = sqlite3.connect(UNIT_TEST_DB_PATH + UNIT_TEST_DB_FILE_NAME)
+    expected_df = pd.read_sql('SELECT * FROM city_tier_mapped_test_case', conn_ut)
+
     conn.close()
     conn_ut.close()
-    
-    assert test_case_city_tier.equals(city_tier_map), "Dataframes are not same"
-    
 
-###############################################################################
-# Write test cases for map_categorical_vars() function
-# ##############################################################################    
+    assert expected_df.equals(output_df), "❌ Data mismatch in `map_city_tier()`"
+
 def test_map_categorical_vars():
-    """_summary_
-    This function checks if map_cat_vars function is working properly by
-    comparing its output with test cases provided in the db in a table named
-    'categorical_variables_mapped_test_case'
-
-    INPUTS
-        DB_FILE_NAME : Name of the database file 'utils_output.db'
-        DB_PATH : path where the db file should be present
-        UNIT_TEST_DB_FILE_NAME: Name of the test database file 'unit_test_cases.db'
-    
-    SAMPLE USAGE
-        output=test_map_cat_vars()
-
-    """   
     map_categorical_vars()
-    
-    conn = sqlite3.connect(DB_PATH+DB_FILE_NAME)
-    print("Reading data from categorical_variables_mapped table")
-    cat_var_map = pd.read_sql('select * from categorical_variables_mapped', conn)
-    
-    conn_ut = sqlite3.connect(DB_PATH+UNIT_TEST_DB_FILE_NAME)
-    print("Reading data from categorical_variables_mapped_test_case table")
-    test_case_cat_var = pd.read_sql('select * from categorical_variables_mapped_test_case', conn_ut)
-    
+
+    conn = sqlite3.connect(DB_FULL_PATH)
+    output_df = pd.read_sql('SELECT * FROM categorical_variables_mapped', conn)
+
+    conn_ut = sqlite3.connect(UNIT_TEST_DB_PATH + UNIT_TEST_DB_FILE_NAME)
+    expected_df = pd.read_sql('SELECT * FROM categorical_variables_mapped_test_case', conn_ut)
+
     conn.close()
     conn_ut.close()
-    
-    assert test_case_cat_var.equals(cat_var_map), "Dataframes are not same"
-    
 
-###############################################################################
-# Write test cases for interactions_mapping() function
-# ##############################################################################    
+    assert expected_df.equals(output_df), "❌ Data mismatch in `map_categorical_vars()`"
+
 def test_interactions_mapping():
-    """_summary_
-    This function checks if test_column_mapping function is working properly by
-    comparing its output with test cases provided in the db in a table named
-    'interactions_mapped_test_case'
+    interactions_mapping("final_output")
 
-    INPUTS
-        DB_FILE_NAME : Name of the database file 'utils_output.db'
-        DB_PATH : path where the db file should be present
-        UNIT_TEST_DB_FILE_NAME: Name of the test database file 'unit_test_cases.db'
+    conn = sqlite3.connect(DB_FULL_PATH)
+    output_df = pd.read_sql('SELECT * FROM interactions_mapped', conn)
 
-    SAMPLE USAGE
-        output=test_column_mapping()
+    conn_ut = sqlite3.connect(UNIT_TEST_DB_PATH + UNIT_TEST_DB_FILE_NAME)
+    expected_df = pd.read_sql('SELECT * FROM interactions_mapped_test_case', conn_ut)
 
-    """ 
-    interactions_mapping()
-    
-    conn = sqlite3.connect(DB_PATH+DB_FILE_NAME)  
-    print("Reading data from interactions_mapped table")
-    int_map = pd.read_sql('select * from interactions_mapped', conn)
-    
-    conn_ut = sqlite3.connect(DB_PATH+UNIT_TEST_DB_FILE_NAME)
-    print("Reading data from interactions_mapped_test_case table")
-    test_case_int_map = pd.read_sql('select * from interactions_mapped_test_case', conn_ut)
-    
     conn.close()
     conn_ut.close()
-    
-    assert test_case_int_map.equals(int_map), "Dataframes are not same"
+
+    assert expected_df.equals(output_df), "❌ Data mismatch in `interactions_mapping()`"
