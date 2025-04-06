@@ -17,106 +17,9 @@ from lead_scoring_inference_pipeline.constants import (
     PREDICTION_DIST_TXT
 )
 
-
-# def encode_features():
-#     """
-#     One-hot encodes the categorical features in the training dataset.
-#     Encoded features and the target variable are saved in separate tables.
-
-#     INPUTS:
-#         DB_FULL_PATH             : Complete path of the database file.
-#         ONE_HOT_ENCODED_FEATURES : List of features for the final encoded DataFrame.
-#         FEATURES_TO_ENCODE       : List of features from cleaned data to be one-hot encoded.
-
-#     OUTPUT:
-#         - Encoded features saved in the 'INFERENCE' table.
-#         - (Target saving commented out.)
-
-#     USAGE:
-#         encode_features()
-
-#     NOTE:
-#         Used in Airflow pipelines. Print statements are included for non-Airflow testing.
-#     """
-#     connection = None
-#     try:
-#         connection = sqlite3.connect(DB_FULL_PATH)
-#         model_input_df = pd.read_sql('SELECT * FROM MODEL_INPUT', connection)
-
-#         # Prepare empty DataFrames for final encoded features and intermediate one-hot encoded data.
-#         final_encoded_df = pd.DataFrame(columns=ONE_HOT_ENCODED_FEATURES)
-#         encoded_dummies_df = pd.DataFrame()
-
-#         # Perform one-hot encoding for each feature in FEATURES_TO_ENCODE.
-#         for feature in FEATURES_TO_ENCODE:
-#             if feature in model_input_df.columns:
-#                 dummies = pd.get_dummies(model_input_df[feature]).add_prefix(f"{feature}_")
-#                 encoded_dummies_df = pd.concat([encoded_dummies_df, dummies], axis=1)
-#             else:
-#                 error_msg = f"Feature '{feature}' not found in MODEL_INPUT dataframe."
-#                 print(error_msg)
-#                 connection.close()
-#                 raise AirflowException(error_msg)
-
-#         # Combine original and encoded columns into the final DataFrame.
-#         for col in final_encoded_df.columns:
-#             if col in model_input_df.columns:
-#                 final_encoded_df[col] = model_input_df[col]
-#             if col in encoded_dummies_df.columns:
-#                 final_encoded_df[col] = encoded_dummies_df[col]
-
-#         final_encoded_df.fillna(0, inplace=True)
-
-#         # Save features (excluding target) in a table.
-#         if 'app_complete_flag' in final_encoded_df.columns:
-#             features_to_save_df = final_encoded_df.drop(['app_complete_flag'], axis=1)
-#         else:
-#             features_to_save_df = final_encoded_df.copy()
-#         features_to_save_df.to_sql(name='INFERENCE', con=connection, if_exists='replace', index=False)
-#         connection.close()
-#         print("encode_features executed successfully.")
-#     except Exception as e:
-#         if connection:
-#             connection.close()
-#         print(f"Error in encode_features: {e}")
-#         raise AirflowException(e)
-
-# def input_features_check():
-#     """
-#     Checks whether all required input columns are present in the inference data.
-#     Logs the status to the console and raises an exception if columns mismatch,
-#     ensuring the pipeline doesn't break silently due to missing columns.
-
-#     INPUTS:
-#         - Database file name and path (via DB_FULL_PATH).
-#         - ONE_HOT_ENCODED_FEATURES: List of expected input features.
-
-#     OUTPUT:
-#         Logs the presence of all input columns.
-#           - 'All the model input are present' if complete.
-#           - Raises ValueError if there is a mismatch.
-
-#     USAGE:
-#         input_features_check()
-#     """
-#     connection = sqlite3.connect(os.path.join(DB_FULL_PATH))
-#     inference_df = pd.read_sql('SELECT * FROM INFERENCE', connection)
-
-#     expected_columns = set(ONE_HOT_ENCODED_FEATURES)
-#     actual_columns = set(inference_df.columns)
-
-#     missing_columns = expected_columns - actual_columns
-#     extra_columns = actual_columns - expected_columns
-
-#     if missing_columns or extra_columns:
-#         print('Some of the model inputs are missing or extra.')
-#         print('Missing columns:', missing_columns)
-#         print('Extra columns:', extra_columns)
-#         connection.close()
-#         raise ValueError(f"Mismatch in input features. Missing: {missing_columns}, Extra: {extra_columns}")
-#     else:
-#         print('All the model input are present')
-#     connection.close()
+def encode_features():
+    # common encode_features function for train and inference
+    pass
 
 def get_models_prediction():
     """
@@ -196,3 +99,7 @@ def prediction_ratio_check():
             connection.close()
         print(f"Error in prediction_ratio_check: {e}")
         raise AirflowException(e)
+
+def input_features_check():
+    # Using checking pipeline as training pipeline which is robust.
+    pass
