@@ -6,7 +6,6 @@ import sys
 import os
 
 from lead_scoring_data_pipeline.utils import (
-    build_dbs,
     load_data_into_db,
     map_city_tier,
     map_categorical_vars,
