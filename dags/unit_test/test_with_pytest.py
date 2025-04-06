@@ -22,7 +22,8 @@ sys.path.insert(0, os.path.abspath("/home/airflow/dags"))
 from unit_test.constants import (
     UNIT_TEST_DB_PATH,
     UNIT_TEST_DB_FILE_NAME,
-    TEST_DATA_CSV_PATH
+    TEST_DATA_CSV_PATH,
+    TABLE_NAME
 )
 
 warnings.filterwarnings("ignore")
@@ -69,7 +70,7 @@ def test_map_categorical_vars():
     assert expected_df.equals(output_df), "Data mismatch in map_categorical_vars()"
 
 def test_interactions_mapping():
-    interactions_mapping("final_output")
+    interactions_mapping(TABLE_NAME)
 
     conn = sqlite3.connect(DB_FULL_PATH)
     output_df = pd.read_sql('SELECT * FROM interactions_mapped', conn)

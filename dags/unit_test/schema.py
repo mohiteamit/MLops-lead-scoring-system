@@ -1,2 +1,3 @@
-# Refer dags/lead_scoring_data_pipeline/schema.py
-# There is not need to copy file oevr to unit_test
+# NOTE
+# Refer dags/lead_scoring_data_pipeline
+# There is no need to copy file over to unit_test

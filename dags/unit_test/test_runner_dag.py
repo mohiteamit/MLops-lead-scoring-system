@@ -7,6 +7,9 @@ import os
 # Set the path so Airflow can import your pipeline code
 sys.path.insert(0, os.path.abspath("/home/airflow/dags"))
 
+from unit_test.constants import (
+    TABLE_NAME
+)
 # Import test functions
 import unit_test.test_with_pytest as test_functions
 
