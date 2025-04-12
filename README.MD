@@ -1,7 +1,6 @@
 # Ed Tech CodePro Lead Classification MLOps Project
 
-Welcome to the Ed Tech CodePro Lead Classification project—a state-of-the-art MLOps assignment designed to streamline the end-to-end process of data ingestion, cleaning, training, and inference for lead scoring. This repository houses modular pipelines, interactive notebooks, and robust unit tests that combine to deliver a scalable and maintainable solution for lead classification.
-
+This end-to-end MLOps project demonstrates how to operationalize a machine learning pipeline for lead scoring. It covers model building, evaluation, packaging, and deployment, with a focus on maintainability and scalability — critical for AI adoption in real-world enterprise use cases. This reflects hands-on application of lifecycle management in applied AI.
 ---
 
 ## Table of Contents
